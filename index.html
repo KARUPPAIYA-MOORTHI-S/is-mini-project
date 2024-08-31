@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Message Encryption/Decryption</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #008080; /* Teal background color */
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            color: #fff;
+        }
+        #header {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+            position: relative;
+            margin: 100px auto; /* Centered and adjusted for fixed header */
+        }
+        .panda {
+            width: 100px;
+            height: 100px;
+            background: url('panda.png') no-repeat center center;
+            background-size: contain;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+        .panda .eye, .panda .hand {
+            transition: all 0.3s ease;
+        }
+        .panda .eye {
+            width: 20px;
+            height: 20px;
+            background-color: black;
+            border-radius: 50%;
+            position: absolute;
+            top: 30px;
+            left: 20px;
+        }
+        .panda .eye.right {
+            left: 60px;
+        }
+        .panda .hand {
+            width: 25px;
+            height: 25px;
+            background-color: #000;
+            position: absolute;
+            top: 50px;
+            left: 0;
+            border-radius: 50%;
+        }
+        .panda .hand.right {
+            left: 60px;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        input[type="text"],
+        input[type="password"],
+        input[type="submit"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        input[type="submit"]:active {
+            transform: scale(0.98);
+        }
+        #message, #cipherText, #plainText {
+            margin-top: 15px;
+            color: #007BFF;
+            font-weight: bold;
+        }
+        #message {
+            font-size: 1.1rem;
+        }
+        .feedback-error {
+            color: #ff4d4d; /* Red for errors */
+            animation: fadeInOut 3s ease;
+        }
+        .feedback-success {
+            color: #4CAF50; /* Green for success */
+            animation: fadeInOut 3s ease;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        #encryptContainer, #decryptContainer {
+            display: none;
+        }
+        .animate-lock {
+            animation: lock 1s ease forwards;
+        }
+        .animate-unlock {
+            animation: unlock 1s ease forwards;
+        }
+        @keyframes lock {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        @keyframes unlock {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        #footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            font-size: 0.9rem;
+            overflow: hidden;
+        }
+        #scrollingQuotes {
+            white-space: nowrap;
+            animation: scroll 20s linear infinite; /* Slowed down for better readability */
+        }
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        KEY SECURE 2024
+    </div>
+
+    <div class="container" id="homeContainer">
+        <div id="homeTitle">Welcome to Key Secure 2024</div>
+        <input type="submit" value="Login" onclick="goToLogin()">
+        <a href="https://en.m.wikipedia.org/wiki/Affine_cipher" target="_blank" style="color: #007BFF; text-decoration: none;">Learn about Affine Cipher</a>
+    </div>
+
+    <div class="container" id="loginContainer" style="display:none;">
+        <h2>Login</h2>
+        <div class="panda">
+            <div class="eye"></div>
+            <div class="eye right"></div>
+            <div class="hand"></div>
+            <div class="hand right"></div>
+        </div>
+        <input type="text" id="username" placeholder="Username" required onfocus="pandaFocus(true)" onblur="pandaFocus(false)">
+        <input type="password" id="password" placeholder="Password" required onfocus="pandaCoverEyes(true)" onblur="pandaCoverEyes(false)">
+        <input type="submit" value="Login" onclick="login()">
+        <div id="message" class="feedback-error"></div>
+    </div>
+
+    <div class="container" id="encryptContainer">
+        <h2>Encrypt Message</h2>
+        <input type="text" id="messageInput" placeholder="Enter message" required><br>
+        <input type="submit" value="Encrypt" onclick="encryptMessage(); this.classList.add('animate-lock')">
+        <div id="cipherText" class="feedback-success"></div>
+        <br>
+        <input type="submit" value="Switch to Decrypt" onclick="switchToDecrypt()">
+        <input type="submit" value="Logout" onclick="logout()">
+    </div>
+
+    <div class="container" id="decryptContainer">
+        <h2>Decrypt Message</h2>
+        <input type="text" id="cipherInput" placeholder="Enter encrypted message" required><br>
+        <input type="submit" value="Decrypt" onclick="decryptMessage(); this.classList.add('animate-unlock')">
+        <div id="plainText" class="feedback-success"></div>
+        <br>
+        <input type="submit" value="Switch to Encrypt" onclick="switchToEncrypt()">
+        <input type="submit" value="Logout" onclick="logout()">
+    </div>
+
+    <div id="footer">
+        <div id="scrollingQuotes">
+            "When Your Boss Doesn’t Want to Spend the Money" – When Your Boss Thinks Security is “Just an IT Issue” Thinking of cybersecurity solely as an IT issue is like believing that a company’s entire workforce, from the CEO down, is just one big HR issue. — Steven Chabinsky, Global Chair of Data, Privacy & Cybersecurity at White & Case LLP
+            "Cybersecurity is much more than just IT. It’s a critical business function that involves everyone in the organization." — Anonymous
+        </div>
+    </div>
+
+    <script>
+        const users = [
+            { username: 'USER123', password: '1234567' }
+            // You can add more users here
+        ];
+
+        function goToLogin() {
+            document.getElementById('homeContainer').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'block';
+        }
+
+        function login() {
+            const username = document.getElementById('username').value.toUpperCase();
+            const password = document.getElementById('password').value.toUpperCase();
+            const user = users.find(user => user.username === username && user.password === password);
+
+            if (user) {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('encryptContainer').style.display = 'block';
+                document.getElementById('message').innerText = '';
+            } else {
+                document.getElementById('message').innerText = 'Invalid login. Please try again.';
+                document.getElementById('message').classList.add('feedback-error');
+            }
+        }
+
+        function encryptMessage() {
+            const msg = document.getElementById('messageInput').value.toUpperCase();
+            const a = 17, b = 20;
+            if (!msg.trim()) {
+                document.getElementById('cipherText').innerText = 'Message cannot be empty.';
+                document.getElementById('cipherText').classList.add('feedback-error');
+                return;
+            }
+            let cipher = "";
+
+            for (let char of msg) {
+                if (char !== ' ') {
+                    cipher += String.fromCharCode(((a * (char.charCodeAt(0) - 65) + b) % 26) + 65);
+                } else {
+                    cipher += char;
+                }
+            }
+
+            document.getElementById('cipherText').innerText = "Encrypted Message: " + cipher;
+            document.getElementById('cipherText').classList.remove('feedback-error');
+            document.getElementById('cipherText').classList.add('feedback-success');
+        }
+
+        function decryptMessage() {
+            const cipher = document.getElementById('cipherInput').value.toUpperCase();
+            const a = 17, b = 20;
+            const a_inv = 23; // Multiplicative inverse of 'a' under modulo 26
+            if (!cipher.trim()) {
+                document.getElementById('plainText').innerText = 'Cipher text cannot be empty.';
+                document.getElementById('plainText').classList.add('feedback-error');
+                return;
+            }
+            let msg = "";
+
+            for (let char of cipher) {
+                if (char !== ' ') {
+                    msg += String.fromCharCode(((a_inv * ((char.charCodeAt(0) - 65) - b + 26)) % 26) + 65);
+                } else {
+                    msg += char;
+                }
+            }
+
+            document.getElementById('plainText').innerText = "Original Message: " + msg;
+            document.getElementById('plainText').classList.remove('feedback-error');
+            document.getElementById('plainText').classList.add('feedback-success');
+        }
+
+        function logout() {
+            document.getElementById('homeContainer').style.display = 'block';
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('encryptContainer').style.display = 'none';
+            document.getElementById('decryptContainer').style.display = 'none';
+            document.getElementById('message').innerText = '';
+            document.getElementById('cipherText').innerText = '';
+            document.getElementById('plainText').innerText = '';
+        }
+
+        function switchToDecrypt() {
+            document.getElementById('encryptContainer').style.display = 'none';
+            document.getElementById('decryptContainer').style.display = 'block';
+        }
+
+        function switchToEncrypt() {
+            document.getElementById('decryptContainer').style.display = 'none';
+            document.getElementById('encryptContainer').style.display = 'block';
+        }
+
+        function pandaFocus(focus) {
+            const container = document.getElementById('loginContainer');
+            if (focus) {
+                container.classList.add('input-active');
+                document.querySelector('.panda .eye').style.top = '15px';
+                document.querySelector('.panda .eye.right').style.top = '15px';
+                document.querySelector('.panda .hand').style.top = '80px';
+                document.querySelector('.panda .hand.right').style.top = '80px';
+            } else {
+                container.classList.remove('input-active');
+                document.querySelector('.panda .eye').style.top = '30px';
+                document.querySelector('.panda .eye.right').style.top = '30px';
+                document.querySelector('.panda .hand').style.top = '50px';
+                document.querySelector('.panda .hand.right').style.top = '50px';
+            }
+        }
+
+        function pandaCoverEyes(cover) {
+            const container = document.getElementById('loginContainer');
+            if (cover) {
+                container.classList.add('input-active');
+            } else {
+                container.classList.remove('input-active');
+            }
+        }
+    </script>
+</body>
+</html>
